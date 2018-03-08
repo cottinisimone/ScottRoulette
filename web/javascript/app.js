@@ -17,20 +17,18 @@ var rtc = new ScRTC({
  *  browser's hardware access alert.
  */
 rtc.onMediaAvailable = function(stream) {
-  var local = $('#video-local');
-  local[0].srcObject = stream;
-  local[0].muted = true;
-  local.appendTo('#local-user');
-  local[0].onloadeddata = function() { onLoadedData(local, stream) }
+  localVideo[0].srcObject = stream;
+  localVideo[0].muted = true;
+  localVideo.appendTo('#local-user');
+  localVideo[0].onloadeddata = function() { onLoadedData(localVideo, stream) }
 }
 
 /**
  * Callback. Remote connection has been correctly established
  */
 rtc.onRemoteConnection = function(stream) {
-  var remote = $('#video-remote');
-  remote[0].srcObject = stream;
-  remote[0].muted = true;
+  remoteVideo[0].srcObject = stream;
+  remoteVideo[0].muted = true;
   enableCommunications();
 }
 
@@ -43,10 +41,14 @@ rtc.onMessage = function(message) {
 //////////////////////////////////////////////////////////////////////////////////////////
 var messagesContainer = $('#chat-messages');
 var chatInput = $('#chat-text');
+
 var startButton = $('#start');
 var nextButton = $('#next');
 var stopButton = $('#stop');
 var sendButton = $('#send');
+
+var localVideo = $('#video-local');
+var remoteVideo = $('#video-remote');
 /**
  * Creates an UUID like
  */
@@ -68,14 +70,9 @@ function getWebsocketUrl() {
  * Stretch some elements to fit the correct dimensions (sorry, not a FE developer)
  */
 function onLoadedData(localVideo, stream) {
-  var remoteVideo = $('#video-remote');
-  var localUser = $('#local-user');
-
   remoteVideo.width(localVideo.width());
   remoteVideo.height(localVideo.height());
-
   rendertext('Welcome to Rockroulette and thank you for joining the site!');
-
   registerCallbacks();
 }
 /**
@@ -121,11 +118,11 @@ function enableCommunications() {
   //  hidden and the Send button and message input will be disabled
   stopButton.on('click', function(event) {
     startButton.css('display', '');
+    startButton.removeClass('disabled');
     nextButton.css('display', 'none');
     stopButton.css('display', 'none');
     sendButton.addClass('disabled');
     chatInput.attr('disabled');
-    // TODO: input disabilitato
     rtc.stop();
   })
 }

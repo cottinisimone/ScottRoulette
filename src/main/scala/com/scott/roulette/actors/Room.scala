@@ -1,37 +1,45 @@
 /**
-  * @author cottinisimone
+  *  @author cottinisimone
+  *  @version 1.0, 08/03/2018
   */
 package com.scott.roulette.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSelection, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorSelection, Cancellable, Props, Terminated}
 import com.scott.roulette.WebSocket.Signal
-import com.scott.roulette.actors.Chat._
-import com.scott.roulette.config.ChatConfig
+import com.scott.roulette.actors.Room._
+import com.scott.roulette.config.RockConfig
+import com.scott.roulette.config.RockConfig.RoomConfig
 import com.scott.roulette.enums.SignalType
-import io.circe.Json
+import com.scott.roulette.tagging.UserRef
 import io.circe.generic.auto._
 import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/**
-  *
+/** In the future this will be a cluster of sharded actors
   * @param config The chat config
   */
-class Chat(config: ChatConfig)(implicit ec: ExecutionContext) extends Actor with ActorLogging {
+class Room(config: RoomConfig)(implicit ec: ExecutionContext) extends Actor with ActorLogging {
 
   var users: Set[String]          = Set()
   var idles: Set[String]          = Set()
   var paired: Map[String, String] = Map.empty
 
-  context.system.scheduler.schedule(0.seconds, config.updateInterval)(
+  val schedule: Cancellable = context.system.scheduler.schedule(0.seconds, config.updateInterval)(
     users.foreach(user(_) ! Signal(SignalType.Update, Update(users.size).asJson))
   )
 
+  override def postStop(): Unit = {
+    super.postStop()
+    if (schedule.cancel()) {
+      println("Room => Terminated!")
+    }
+  }
+
   /**
     *
-    * @return
+    * @return PF[Any, Unit]
     */
   override def receive: Receive = {
 
@@ -39,7 +47,7 @@ class Chat(config: ChatConfig)(implicit ec: ExecutionContext) extends Actor with
       val userId = sender.path.name
       println(s"$userId - Connects to chat")
       users += userId
-      context.watch(user) ! Signal(SignalType.Online, DefaultPayload)
+      context.watch(user) ! Signal(SignalType.Online)
 
     case Ready =>
       val userId = sender.path.name
@@ -125,20 +133,20 @@ class Chat(config: ChatConfig)(implicit ec: ExecutionContext) extends Actor with
 
   /**
     *
-    * @param userId identifier to get the corresponding user's ActorRef
+    * @param userId identifier to get the corresponding user's actor reference
     * @return
     */
   private def user(userId: String): ActorSelection = context.system.actorSelection(s"/user/$userId")
 }
 
-object Chat {
+object Room {
 
-  val DefaultPayload: Json = Json.obj()
+  def props(config: RockConfig)(implicit ec: ExecutionContext): Props = Props(new Room(config.room))
 
   /** User sends message to room to Join
     * @param user Reference to User actor
     */
-  case class Online(user: ActorRef)
+  case class Online(user: UserRef)
   case object Ready
   private final case class Pair(userId: String)
 

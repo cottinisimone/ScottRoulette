@@ -127,7 +127,7 @@ var ScRTC = function(config) {
   /** > Every user
    * 
    */
-  this.stop = function() { }
+  this.stop = function() { websocket.send() }
   /*********************************************
    * Web socket methods
    */
@@ -151,7 +151,7 @@ var ScRTC = function(config) {
 
   websocket.onclose = function(event) {
     Self.log('WS  | Closed')
-    Self.close()
+    this.close()
   }
  
   websocket.onerror = function(event) {

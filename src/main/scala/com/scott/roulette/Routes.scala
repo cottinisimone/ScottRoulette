@@ -1,16 +1,15 @@
 /**
-  * @author cottinisimone
+  *  @author cottinisimone
+  *  @version 1.0, 08/03/2018
   */
 package com.scott.roulette
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.scott.roulette.config.ChatConfig
-
-import scala.concurrent.ExecutionContext
+import com.scott.roulette.tagging.RoomRef
 
 trait Routes {
 
@@ -24,10 +23,10 @@ trait Routes {
   private val index: Route     = path("")(getFromDirectory(s"$resourceDir/index.html"))
   private val resources: Route = path(Remaining)(asset => getFromDirectory(s"$resourceDir/$asset"))
 
-  def routes(chat: ActorRef): Route = {
+  def routes(room: RoomRef): Route = {
     path("chat") {
       get {
-        handleWebSocketMessages(WebSocket(chat))
+        handleWebSocketMessages(WebSocket(room))
       }
     } ~ index ~ resources
   }

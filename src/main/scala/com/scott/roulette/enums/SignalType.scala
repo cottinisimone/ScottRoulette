@@ -1,5 +1,6 @@
 /**
-  * @author cottinisimone
+  *  @author cottinisimone
+  *  @version 1.0, 08/03/2018
   */
 package com.scott.roulette.enums
 
@@ -9,6 +10,7 @@ import scala.util.Try
 
 sealed trait SignalType {
   def value: String
+  override def toString: String = value
 }
 
 object SignalType {
@@ -27,47 +29,39 @@ object SignalType {
   private val ErrorValue: String = "error"
 
   case object Online extends SignalType {
-    override val value: String    = OnlineValue
-    override val toString: String = value
+    override val value: String = OnlineValue
   }
 
   case object Ready extends SignalType {
-    override val value: String    = ReadyValue
-    override val toString: String = value
+    override val value: String = ReadyValue
   }
 
   case object Paired extends SignalType {
-    override val value: String    = PairedValue
-    override val toString: String = value
+    override val value: String = PairedValue
   }
 
   case object Update extends SignalType {
-    override val value: String    = UpdateValue
-    override val toString: String = value
+    override val value: String = UpdateValue
   }
 
   case object Offer extends SignalType {
-    override val value: String    = OfferValue
-    override val toString: String = value
+    override val value: String = OfferValue
   }
 
   case object Answer extends SignalType {
-    override val value: String    = AnswerValue
-    override val toString: String = value
+    override val value: String = AnswerValue
   }
 
   case object Candidate extends SignalType {
-    override val value: String    = CandidateValue
-    override val toString: String = value
+    override val value: String = CandidateValue
   }
 
   case object Error extends SignalType {
-    override val value: String    = ErrorValue
-    override val toString: String = value
+    override val value: String = ErrorValue
   }
 
-  def fromString(str: String): SignalType = {
-    str.toLowerCase match {
+  def fromString(signal: String): SignalType = {
+    signal.toLowerCase match {
       case OnlineValue    => Online
       case ReadyValue     => Ready
       case PairedValue    => Paired
@@ -76,7 +70,7 @@ object SignalType {
       case AnswerValue    => Answer
       case CandidateValue => Candidate
       case ErrorValue     => Error
-      case _              => throw new IllegalArgumentException(s"$str is not a known Signal value")
+      case _              => throw new IllegalArgumentException(s"$signal is not a known Signal value")
     }
   }
 
@@ -84,9 +78,6 @@ object SignalType {
     override def apply(a: SignalType): Json = Json.fromString(a.toString)
   }
 
-  implicit val originDecoder: Decoder[SignalType] = Decoder.decodeString.flatMap { str =>
-    Decoder.instanceTry { _ =>
-      Try(fromString(str))
-    }
-  }
+  implicit val originDecoder: Decoder[SignalType] =
+    Decoder.decodeString.flatMap(value => Decoder.instanceTry(_ => Try(fromString(value))))
 }

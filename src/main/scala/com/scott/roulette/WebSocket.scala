@@ -1,17 +1,20 @@
 /**
-  * @author cottinisimone
+  *  @author cottinisimone
+  *  @version 1.0, 08/03/2018
   */
 package com.scott.roulette
 
 import java.util.UUID
 
 import akka.NotUsed
-import akka.actor.{ActorRef, ActorSystem, PoisonPill}
+import akka.actor.{ActorSystem, PoisonPill}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.scott.roulette.actors.User
 import com.scott.roulette.enums.SignalType
+import com.scott.roulette.tagging.Tag.{UserRefTag, WebSocketRefTag}
+import com.scott.roulette.tagging.{RoomRef, UserRef, WebSocketRef, tag}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Json, parser}
@@ -33,16 +36,16 @@ object WebSocket {
 
   /**
     *
-    * @param actorRef the websocket
+    * @param websocket the websocket provided by akka
     */
-  case class WS(actorRef: ActorRef)
+  case class WS(websocket: WebSocketRef)
 
   private val InvalidWebsocketMessageEncode: String = "Invalid websocket message encode"
 
-  def apply(room: ActorRef)(implicit system: ActorSystem): Flow[Message, Message, NotUsed] = {
+  def apply(room: RoomRef)(implicit system: ActorSystem): Flow[Message, Message, NotUsed] = {
 
     val userId: String = UUID.randomUUID.toString
-    val user: ActorRef = system.actorOf(User.props(userId, room), userId)
+    val user: UserRef  = tag[UserRefTag](system.actorOf(User.props(userId, room), userId))
 
     val incomingMessages: Sink[Message, NotUsed] = Flow[Message]
       .map {
@@ -53,8 +56,8 @@ object WebSocket {
 
     val outgoingMessages: Source[Message, NotUsed] = Source
       .actorRef[Signal](10, OverflowStrategy.fail)
-      .mapMaterializedValue { outActor =>
-        user ! WS(outActor)
+      .mapMaterializedValue { websocket =>
+        user ! WS(tag[WebSocketRefTag](websocket))
         NotUsed
       }
       .map(value => TextMessage(value.asJson.noSpaces))
@@ -62,7 +65,7 @@ object WebSocket {
     Flow.fromSinkAndSource(incomingMessages, outgoingMessages)
   }
 
-  private def error(s: String): Json = Json.obj("error" -> Json.fromString(s))
+  private def error(err: String): Json = Json.obj("error" -> Json.fromString(err))
 
   private def decode(text: String): WebSocketMessage = parser.decode[Signal](text) match {
     case Right(signal) => signal

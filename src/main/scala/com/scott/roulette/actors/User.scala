@@ -1,20 +1,23 @@
 /**
-  * @author cottinisimone
+  *  @author cottinisimone
+  *  @version 1.0, 08/03/2018
   */
 package com.scott.roulette.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import com.scott.roulette.WebSocket.{Signal, WS}
-import com.scott.roulette.actors.Chat._
+import com.scott.roulette.actors.Room._
 import com.scott.roulette.enums.SignalType
+import com.scott.roulette.tagging.Tag.UserRefTag
+import com.scott.roulette.tagging._
 
 /**
   * @param userId user's identifier
   * @param room main room
   */
-class User private (userId: String, room: ActorRef) extends Actor with ActorLogging {
+class User private (userId: String, room: RoomRef) extends Actor with ActorLogging {
 
-  var websocket: Option[ActorRef] = None
+  var websocket: Option[WebSocketRef] = None
 
   /**
     *
@@ -38,10 +41,10 @@ class User private (userId: String, room: ActorRef) extends Actor with ActorLogg
     * @param ws open websocket
     * @return
     */
-  def online(ws: ActorRef): Receive = {
+  def online(ws: WebSocketRef): Receive = {
 
     websocket = Option(ws)
-    room ! Online(self)
+    room ! Online(tag[UserRefTag](self))
 
     {
       case sig @ Signal(SignalType.Online, _) if sender == room =>
@@ -97,5 +100,5 @@ object User {
     * @param room main room
     * @return
     */
-  def props(userId: String, room: ActorRef): Props = Props(new User(userId, room))
+  def props(userId: String, room: RoomRef): Props = Props(new User(userId, room))
 }
