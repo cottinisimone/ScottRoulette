@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize/materialize.min.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="css/rockroulette.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <title>RockRoulette</title>
+</head>
+<body>
+    <div class="row">
+        <div class="col l3 s3">
+            <h3 class="center">RockRoulette</h3>
+        </div>
+        <div class="col l1 s1">
+            <h3>
+                <button id="start" class="btn waves-effect waves-light">
+                    Start
+                    <i class="material-icons right">play_arrow</i>
+                </button>
+                <button id="next" class="btn waves-effect waves-light" style="display:none;">Next</button>
+            </h3>
+        </div>
+        <div class="col l1 s1">
+            <h3><button id="stop" class="btn waves-effect waves-light" style="display: none;">Stop</button></h3>
+        </div>
+    </div>
+    <div class="row flexed">
+        <div class="col l3 s12">
+            <div id="remote-user" class="col l12 s6 card">
+                <h4 class="center">Partner</h4>
+                <video id="video-remote" class="responsive-video" style="padding-bottom: .5rem" autoplay>
+                    <!--<source src="static/black.mp4" type="video/mp4"/>-->
+                </video>
+            </div>
+            <div id="local-user" class="col l12 s6 card">
+                <h4 class="center">You</h4>
+                <video id="video-local" class="responsive-video" style="padding-bottom: .5rem" autoplay></video>
+            </div>
+        </div>
+        <div class="col l9 s12 flexed">
+            <div class="col l12 card chat">
+                <pre id="chat-messages" class="chat-messages"></pre>
+                <div class="file-field input-field" style="margin-top: 0px">
+                    <div class="input-field col l10">
+                        <input disabled id="chat-text" type="text" class="validate">
+                        <label for="chat-text">Send message to partner</label>
+                    </div>
+                    <div id="chat-send" class="input-field col l2">
+                        <button id="send" class="btn waves-effect waves-light disabled" type="submit" name="action">
+                            Send
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="javascript/jquery/jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script src="javascript/materialize/materialize.min.js" type="text/javascript"></script>
+    <script src="javascript/rtc/webrtc.js" type="text/javascript"></script>
+    <script src="javascript/app.js" type="text/javascript"></script>
+</body>
+</html>
